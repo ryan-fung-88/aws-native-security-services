@@ -41,6 +41,13 @@ variable "account_arregator_name" {
   default     = "default"
 }
 
+variable "config_role" {
+  description = "The ARN of the IAM role for AWS Config"
+  type        = string
+  default     = " " 
+  
+}
+
 variable "config_aggregation_account_ids" {
   description = "List of AWS account IDs to aggregate AWS Config data from"
   type        = list(string)
@@ -63,6 +70,12 @@ variable "delivery_channel_name" {
   description = "The name of the AWS Config delivery channel"
   type        = string
   default     = "default"
+}
+
+variable "s3_config_bucket" {
+  description = "The name of the S3 bucket for AWS Config delivery"
+  type        = string
+  default     = " "  
 }
 
 variable "snapshot_delivery_frequency" {

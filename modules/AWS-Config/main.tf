@@ -1,6 +1,6 @@
 resource "aws_config_configuration_recorder" "config_recorder" {
   name     = var.config_recorder_name
-  role_arn = "arn:aws:iam::123456789012:role/MyConfigRole"  # Replace with the centralized aws config role ARN
+  role_arn = var.config_role  # Replace with the centralized aws config role ARN
 
   recording_group {
     all_supported                 = var.recording_all_resource_types
@@ -33,14 +33,13 @@ resource "aws_config_configuration_aggregator" "config_account_aggregator" {
 
 resource "aws_config_delivery_channel" "config_delivery_channel" {
   name           = var.delivery_channel_name
-  s3_bucket_name = "Test-bucket"  # Replace with the S3 bucket used for centralized logging
+  s3_bucket_name = var.s3_config_bucket  # Replace with the S3 bucket used for centralized logging
   snapshot_delivery_properties {
     delivery_frequency = var.snapshot_delivery_frequency
   }
 
   depends_on = [
     aws_config_configuration_recorder.config_recorder,  # Ensure the configuration recorder is created before the delivery channel
-    # S3 bucket must be created before the delivery channel
   ]
 
 }
