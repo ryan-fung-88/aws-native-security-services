@@ -34,6 +34,30 @@ variable "enable_config_recorder" {
   default     = true
 }
 
+variable "account_arregator_name" {
+  description = "The name of the AWS Config configuration aggregator"
+  type        = string
+  default     = "default"
+}
+
+variable "config_aggregation_account_ids" {
+  description = "List of AWS account IDs to aggregate AWS Config data from"
+  type        = list(string)
+  default     = []
+}
+
+variable "config_aggregation_all_regions" {
+  description = "Whether to aggregate AWS Config data from all regions"
+  type        = bool
+  default     = true
+}
+
+variable "config_aggregation_regions" {
+  description = "List of AWS regions to aggregate AWS Config data from if not aggregating all"
+  type        = list(string)
+  default     = []
+}
+
 variable "delivery_channel_name" {
   description = "The name of the AWS Config delivery channel"
   type        = string

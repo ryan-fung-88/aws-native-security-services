@@ -19,6 +19,18 @@ resource "aws_config_configuration_recorder_status" "config_recorder_status" {
   ]
 }
 
+resource "aws_config_configuration_aggregator" "config_account_aggregator" {
+  name = var.account_arregator_name
+
+  account_aggregation_source {
+    account_ids = var.config_aggregation_account_ids
+    all_regions = var.config_aggregation_all_regions
+    regions     = var.config_aggregation_all_regions ? [] : var.config_aggregation_regions
+  }
+
+  depends_on = [ aws_config_configuration_recorder.config_recorder ]
+}
+
 resource "aws_config_delivery_channel" "config_delivery_channel" {
   name           = var.delivery_channel_name
   s3_bucket_name = "Test-bucket"  # Replace with the S3 bucket used for centralized logging
