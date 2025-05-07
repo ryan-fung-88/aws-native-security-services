@@ -1,0 +1,61 @@
+variable "aws_region" {
+  description = "The AWS region to deploy resources in"
+  type        = string
+  default     = "us-east-1"
+}
+
+### Variables for AWS Config ###
+
+variable "config_recorder_name" {
+  description = "The name of the AWS Config configuration recorder"
+  type        = string
+  default     = "default"
+}
+
+variable "recording_all_resource_types" {
+  description = "Whether to record all supported AWS resource types"
+  type        = bool
+  default     = true
+}
+
+variable "include_global_resource_types" {
+  description = "Whether to include global resource types in the recording group"
+  type        = bool
+  default     = false
+}
+
+variable "resource_types_to_record" {
+  description = "List of specific resource types to record if not recording all"
+  type        = list(string)
+  default     = []
+}
+
+variable "enable_config_recorder" {
+  description = "Whether to enable the AWS Config configuration recorder"
+  type        = bool
+  default     = true
+}
+
+variable "delivery_channel_name" {
+  description = "The name of the AWS Config delivery channel"
+  type        = string
+  default     = "default"
+}
+
+variable "snapshot_delivery_frequency" {
+  description = "The frequency at which AWS Config delivers configuration snapshots"
+  type        = string
+  default     = "One_Hour"
+}
+
+variable "managed_rules" {
+  description = "Map of AWS Config managed rules to be created"
+  type = map(object({
+    identifier  = string
+    description = optional(string)
+    parameters  = optional(string)
+  }))
+  default = {}
+
+}
+
