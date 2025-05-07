@@ -33,7 +33,7 @@ resource "aws_config_delivery_channel" "config_delivery_channel" {
   }
 
   depends_on = [
-    aws_config_configuration_recorder.this,
+    aws_config_configuration_recorder.config_recorder,  # Ensure the configuration recorder is created before the delivery channel
     # S3 bucket must be created before the delivery channel
   ]
 
@@ -52,5 +52,5 @@ resource "aws_config_config_rule" "managed_rules" {
 
   input_parameters = lookup(each.value, "parameters", null)
 
-  depends_on = [aws_config_configuration_recorder.this]
+  depends_on = [aws_config_configuration_recorder.config_recorder]
 }
