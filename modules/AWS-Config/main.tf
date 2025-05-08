@@ -20,7 +20,7 @@ resource "aws_config_configuration_recorder_status" "config_recorder_status" {
 }
 
 resource "aws_config_configuration_aggregator" "config_account_aggregator" {
-  name = var.account_arregator_name
+  name = var.account_aggregator_name
 
   account_aggregation_source {
     account_ids = var.config_aggregation_account_ids
@@ -46,15 +46,12 @@ resource "aws_config_delivery_channel" "config_delivery_channel" {
 
 resource "aws_config_config_rule" "managed_rules" {
   for_each = var.managed_rules
-
   name        = each.key
   description = lookup(each.value, "description", "AWS Managed Config Rule - ${each.key}")
-
   source {
     owner             = "AWS"
     source_identifier = each.value.identifier
   }
-
   input_parameters = lookup(each.value, "parameters", null)
 
   depends_on = [aws_config_configuration_recorder.config_recorder]

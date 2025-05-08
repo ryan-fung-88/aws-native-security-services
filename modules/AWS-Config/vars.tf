@@ -34,7 +34,7 @@ variable "enable_config_recorder" {
   default     = true
 }
 
-variable "account_arregator_name" {
+variable "account_aggregator_name" {
   description = "The name of the AWS Config configuration aggregator"
   type        = string
   default     = "default"
