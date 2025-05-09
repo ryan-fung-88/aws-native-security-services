@@ -20,8 +20,9 @@ resource "aws_config_configuration_recorder_status" "config_recorder_status" {
 }
 
 resource "aws_config_configuration_aggregator" "config_account_aggregator" {
+  count = var.include_config_aggregator ? 1 : 0
+  
   name = var.account_aggregator_name
-
   account_aggregation_source {
     account_ids = var.config_aggregation_account_ids
     all_regions = var.config_aggregation_all_regions

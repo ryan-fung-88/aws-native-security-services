@@ -35,6 +35,13 @@ variable "enable_config_recorder" {
   type        = bool
   default     = true
 }
+
+variable "include_config_aggregator" {
+  description = "Whether to include the AWS Config configuration aggregator"
+  type        = bool
+  default     = true
+}
+
 variable "account_aggregator_name" {
   description = "The name of the AWS Config configuration aggregator"
   type        = string
