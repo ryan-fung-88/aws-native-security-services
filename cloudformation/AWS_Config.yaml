@@ -145,15 +145,5 @@ Outputs:
   ConfigAggregatorName:
     Description: 'Name of AWS Config Aggregator'
     Value: !Ref ConfigAggregator
+
     
-  ConfigServiceRoleARN:
-    Description: 'ARN of IAM Role used by AWS Config'
-    Value: !GetAtt ConfigRole.Arn
-    
-  ConfigKMSKeyARN:
-    Description: 'ARN of KMS Key used for encryption'
-    Value: !GetAtt ConfigKMSKey.Arn
-    
-  ConfigSNSTopicARN:
-    Description: 'ARN of SNS Topic for Config notifications'
-    Value: !Ref ConfigTopic
