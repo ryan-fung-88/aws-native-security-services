@@ -133,6 +133,152 @@ Resources:
     Properties:
       AuthorizedAccountId: !Ref CentralizedConfigAccountId
       AuthorizedAwsRegion: !Ref CentralizedConfigRegion
+  
+  # AWS Managed Config Rules
+  CloudTrailEnabledRule:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: 'cloudtrail-enabled'
+      Description: 'Ensure CloudTrail is enabled in all regions'
+      Source:
+        Owner: 'AWS'
+        SourceIdentifier: 'CLOUD_TRAIL_ENABLED'
+
+  GuardDutyEnabledRule:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: 'GuardDuty-enabled'
+      Description: 'Ensure CloudTrail is enabled in all supported regions'
+      Source:
+        Owner: 'AWS'
+        SourceIdentifier: 'GUARDDUTY_ENABLED_CENTRALIZED'
+
+  SecurityHubEnabledRule:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: 'SecurityHub-enabled'
+      Description: 'Ensure SecurityHub is enabled in all supported regions'
+      Source:
+        Owner: 'AWS'
+        SourceIdentifier: 'GUARDDUTY_ENABLED_CENTRALIZED'
+
+  SecurityHubEnabledRule:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: 'SecurityHub-enabled'
+      Description: 'Ensure SecurityHub is enabled in all supported regions'
+      Source:
+        Owner: 'AWS'
+        SourceIdentifier: 'GUARDDUTY_ENABLED_CENTRALIZED'
+
+  VPCFlowLogsEnabledRule:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: 'VPC-flow-logs-enabled'
+      Description: 'Ensure VPC Flow Logs are enabled in all VPCs'
+      Source:
+        Owner: 'AWS'
+        SourceIdentifier: 'GUARDDUTY_ENABLED_CENTRALIZED'
+
+  S3BlockPublicAccessRule:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: 'S3-block-public-access'
+      Description: 'Ensure S3 Block Public Access is enabled'
+      Source:
+        Owner: 'AWS'
+        SourceIdentifier: 'S3_BUCKET_LEVEL_PUBLIC_ACCESS_PROHIBITED'
+        InputParameters:
+          excludePublicBucckets: ''
+
+  DefaultSecurityGroupRule:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: 'Default-security-group-check'
+      Description: 'Detects usage of default security groups with open access'
+      Source:
+        Owner: 'AWS'
+        SourceIdentifier: 'S3_BUCKET_LEVEL_PUBLIC_ACCESS_PROHIBITED'
+        InputParameters:
+          excludeRegions: ''
+  
+  CloudTrailLogValidationRule:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: 'cloudtrail-log-file-validation-enabled'
+      Description: 'Ensures CloudTrail log file validation is enabled to detect tampering'
+      Source:
+        Owner: 'AWS'
+        SourceIdentifier: 'CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED'
+  
+  ACMExpirationCheckRule:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: 'acm-certificate-expiration-check'
+      Description: 'Detects ACM certificates nearing expiration'
+      Source:
+        Owner: 'AWS'
+        SourceIdentifier: 'ACM_CERTIFICATE_EXPIRATION_CHECK'
+        InputParameters:
+          daysToExpira: ''
+
+  SecretsRotationEnabledRule:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: 'secretsmanager-rotation-enabled'
+      Description: 'Ensures Secrets Manager secret rotation is enabled'
+      Source:
+        Owner: 'AWS'
+        SourceIdentifier: 'SECRETS_MANAGER_ROTATION_ENABLED'
+
+  IamCredentialExpirationCheckRule:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: 'iam-credential-expiration-check'
+      Description: 'Detects IAM access keys nearing expiration'
+      Source:
+        Owner: 'AWS'
+        SourceIdentifier: 'IAM_USER_UNUSED_CREDENTIALS_CHECK'
+        InputParameters:
+          maxCredentialUsageAge: ''
+
+  EC2InstanceProfileRule:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: 'ec2-instance-profile-attached'
+      Description: 'Ensures EC2 instances are launched with an IAM role'
+      Source:
+        Owner: 'AWS'
+        SourceIdentifier: 'EC2_INSTANCE_PROFILE_ATTACHED'
+  
+  IamUserPolicyCheckRule:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: 'iam-user-policy-check'
+      Description: '"Prevent direct policy attachments to IAM users'
+      Source:
+        Owner: 'AWS'
+        SourceIdentifier: 'IAM_USER_NO_POLICIES_CHECK'
+
+  S3versioningEnabledRule:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: 's3-bucket-versioning-enabled'
+      Description: 'Ensures S3 bucket versioning is enabled'
+      Source:
+        Owner: 'AWS'
+        SourceIdentifier: 'S3_BUCKET_VERSIONING_ENABLED'
+  
+  NaclRestrictionRule:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: 'nacl-restriction-check'
+      Description: 'Ensures NACLs are not open to the world'
+      Source:
+        Owner: 'AWS'
+        SourceIdentifier: 'NACL_NO_UNRESTRICT_SSH_RDP'
+  
+
 
   
   
