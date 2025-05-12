@@ -1,0 +1,159 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template for AWS Config with multi-region aggregation'
+
+Parameters:
+  RecorderName:
+    Type: String
+    Default: 'central-config-recorder'
+    Description: 'Name of the AWS Config Recorder'
+
+  ConfigRoleArn:
+    Type: String
+    Default: ''
+    Description: 'ARN of the IAM Role for AWS Config'
+
+  AllSupported:
+    Type: String
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Description: 'Whether to record all supported AWS resource types'
+
+  IncludeGlobalResourceTypes:
+    Type: String
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Description: 'Whether to include global resource types'
+
+  ResourceTypes:
+    Type: List<String>
+    Default: []
+    Description: 'List of specific resource types to record'
+
+  DeliveryFrequency:
+    Type: String
+    Default: Six_Hours
+    AllowedValues:
+      - One_Hour
+      - Three_Hours
+      - Six_Hours
+      - Twelve_Hours
+      - TwentyFour_Hours
+    Description: 'The frequency with which AWS Config delivers configuration snapshots'
+
+  ConfigBucket:
+    Type: String
+    Default: ''
+    Description: 'S3 bucket name for AWS Config data'
+
+  AggregatorName:
+    Type: String
+    Default: 'central-config-aggregator'
+    Description: 'Name of the AWS Config Aggregator'
+
+  AggregatorAccountIds:
+    Type: List<String>
+    Default: []
+    Description: 'List of AWS account IDs to aggregate Config data from'
+  
+  AggregatorAwsRegions:
+    Type: List<String>
+    Default: []
+    Description: 'List of AWS regions to aggregate Config data from'
+  
+  IncludeAllAwsRegions:
+    Type: String
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Description: 'Whether to include all AWS regions in the Config Aggregator'
+  
+  CentralizedConfigAccountId:
+    Type: String
+    Default: ''
+    Description: 'Centralized AWS account ID for Config Aggregator'
+
+  CentralizedConfigRegion:
+    Type: String
+    Default: 'us-east-1'
+    Description: 'Centralized AWS region for Config Aggregator'
+
+Conditions:
+  IsAllSuported: !Equals
+    - !Ref AllSupported
+    - 'true'
+  IsAllAwsRegions: !Equals
+    - !Ref IncludeAllAwsRegions
+    - 'true'
+
+  
+Resources:
+  # AWS Config Recorder
+  ConfigRecorder:
+    Type: 'AWS::Config::ConfigurationRecorder'
+    Properties:
+      Name: !Ref RecorderName
+      RoleARN: !Ref ConfigRoleArn
+      RecordingGroup:
+        AllSupported: !Ref AllSupported
+        IncludeGlobalResourceTypes: !Ref IncludeGlobalResourceTypes
+        ResourceTypes: !If
+          - IsAllSuported
+          - !Ref AWS::NoValue
+          - !Ref ResourceTypes
+  
+  # AWS Config Delivery Channel
+  ConfigDeliveryChannel:
+    Type: 'AWS::Config::DeliveryChannel'
+    Properties:
+      ConfigSnapshotDeliveryProperties:
+        DeliveryFrequency: !Ref DeliveryFrequency
+      S3BucketName: !Ref ConfigBucket
+  
+  # AWS Config Aggregator
+  ConfigAggregator:
+    Type: 'AWS::Config::ConfigurationAggregator'
+    Properties:
+      ConfigurationAggregatorName: !Ref AggregatorName
+      AccountAggregationSources:
+        AccountIds: !Ref AggregatorAccountIds
+        AllAwsRegions: !Ref IncludeAllAwsRegions
+        AwsRegions: !If
+          - IsAllAwsRegions
+          - !Ref AWS::NoValue
+          - !Ref AggregatorAwsRegions
+  
+  # AWS Config Aggregator Authorization
+  ConfigAggregatorAuthorization:
+    Type: 'AWS::Config::AggregatorAuthorization'
+    Properties:
+      AuthorizedAccountId: !Ref CentralizedConfigAccountId
+      AuthorizedAwsRegion: !Ref CentralizedConfigRegion
+
+  
+  
+
+Outputs:
+  ConfigBucketName:
+    Description: 'Name of S3 bucket for AWS Config data'
+    Value: !Ref ConfigBucket
+    
+  ConfigAggregatorName:
+    Description: 'Name of AWS Config Aggregator'
+    Value: !Ref ConfigAggregator
+    
+  ConfigServiceRoleARN:
+    Description: 'ARN of IAM Role used by AWS Config'
+    Value: !GetAtt ConfigRole.Arn
+    
+  ConfigKMSKeyARN:
+    Description: 'ARN of KMS Key used for encryption'
+    Value: !GetAtt ConfigKMSKey.Arn
+    
+  ConfigSNSTopicARN:
+    Description: 'ARN of SNS Topic for Config notifications'
+    Value: !Ref ConfigTopic
