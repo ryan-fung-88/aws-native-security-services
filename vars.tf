@@ -48,6 +48,18 @@ variable "account_aggregator_name" {
   default     = "default"
 }
 
+variable "config_aggregator_collection_account_id" {
+  description = "The AWS account ID to collect aggregated data from"
+  type        = string
+  default     = " "
+}
+
+variable "config_aggregation_collection_region" {
+  description = "The AWS region to collect aggregated data from"
+  type        = string
+  default     = " "
+}
+
 variable "config_role" {
   description = "The ARN of the IAM role for AWS Config"
   type        = string

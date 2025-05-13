@@ -32,6 +32,13 @@ resource "aws_config_configuration_aggregator" "config_account_aggregator" {
   depends_on = [ aws_config_configuration_recorder.config_recorder ]
 }
 
+resource "aws_config_aggregate_authorization" "config_aggregator_auth" {
+  count = var.include_config_aggregator ? 1 : 0
+
+  account_id            = var.config_aggregator_collection_account_id
+  region                = var.config_aggregation_collection_region
+}
+
 resource "aws_config_delivery_channel" "config_delivery_channel" {
   name           = var.delivery_channel_name
   s3_bucket_name = var.s3_config_bucket  # Replace with the S3 bucket used for centralized logging
