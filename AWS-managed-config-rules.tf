@@ -4,6 +4,14 @@ resource "aws_config_organization_managed_rule" "aws_managed_config_rules" {
   for_each        = local.aws_managed_config_rules
   name            = each.key
   rule_identifier = each.value.rule_identifier
+}
+
+resource "aws_config_organization_managed_rule" "aws_managed_config_rules_with_parameters" {
+  depends_on = [aws_organizations_organization.org]
+
+  for_each        = local.aws_managed_config_rules_with_parameters
+  name            = each.key
+  rule_identifier = each.value.rule_identifier
   input_parameters = each.value.input_parameters
 }
 
@@ -39,12 +47,6 @@ locals {
     kms_rotation_enabled = {
       rule_identifier = "CMK_BACKING_KEY_ROTATION_ENABLED"
     },
-    iam_credential_expiration = {
-      rule_identifier = "IAM_USER_UNUSED_CREDENTIALS_CHECK"
-      input_parameters = jsonencode({
-        "maxCredentialUsageAge" = 90
-      })
-    },
     ec2_instance_profile_check = {
       rule_identifier = "EC2_INSTANCE_PROFILE_ATTACHED"
     },
@@ -56,6 +58,15 @@ locals {
     },
     nacl_restrict_ssh_rdp = {
       rule_identifier = "NACL_NO_UNRESTRICTED_SSH_RDP"
+    }
+  }
+
+  aws_managed_config_rules_with_parameters ={
+     iam_credential_expiration = {
+      rule_identifier = "IAM_USER_UNUSED_CREDENTIALS_CHECK"
+      input_parameters = jsonencode({
+        "maxCredentialUsageAge" = 90
+      })
     }
   }
 }
