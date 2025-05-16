@@ -4,6 +4,7 @@ resource "aws_config_organization_managed_rule" "aws_managed_config_rules" {
   for_each        = local.aws_managed_config_rules
   name            = each.key
   rule_identifier = each.value.rule_identifier
+  input_parameters = each.value.input_parameters
 }
 
 locals {
@@ -40,6 +41,9 @@ locals {
     },
     iam_credential_expiration = {
       rule_identifier = "IAM_USER_UNUSED_CREDENTIALS_CHECK"
+      input_parameters = jsonencode({
+        "maxCredentialUsageAge" = 90
+      })
     },
     ec2_instance_profile_check = {
       rule_identifier = "EC2_INSTANCE_PROFILE_ATTACHED"
