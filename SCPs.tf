@@ -1,90 +1,176 @@
-## Option 1
-module "SCPs" {
-  source = "./modules/AWS-SCPs"
-
-  organization_id = var.organization_id
-  scps            = var.scps
-  target_ou_id    = var.target_ou_id
+// Can this condition be added to the scp_deny_disabling_security_services.tf file for guardduty? 
+// This would prevent the ability to invite GuardDuty members unless the principal is part of your organization.
+condition {
+  test = "StringNotEquals"
+  variable = "aws:PrincipalOrgID"
+  values = [
+    "o-xxxxxxxxxx"
+  ]
 }
 
-#Option 2
-module "SCPs" {
-  source = "./modules/AWS-SCPs"
+// This SCP would prevent resources from being deployed if they dont have appropriate tags
+data "aws_iam_policy_document" "deny_resources_without_required_tags" {
+  statement {
+    sid = "RequireResourceTags"
+    effect = "Deny"
 
-  organization_id = "o-1234567890" # Replace with your organization ID
-  scps = {
-    deny_root_user = {
-      name        = "deny-root-user"
-      description = "Prevents usage of the root user account"
-      policy_content = jsonencode({
-        Version = "2012-10-17"
-        Statement = [
-          {
-            Sid      = "DenyRootUser"
-            Effect   = "Deny"
-            Action   = "*"
-            Resource = "*"
-            Condition = {
-              StringLike = {
-                "aws:PrincipalArn" = [
-                  "arn:aws:iam::*:root"
-                ]
-              }
-            }
-          }
-        ]
-      })
-      tags = {
-        Purpose     = "Security"
-        Environment = "All"
+    actions = [ # add more actions as needed
+      "ec2:RunInstances",
+      "s3:CreateBucket"
+    ]
+
+    resources = [ # add more resources as needed
+      "arn:aws:ec2:::*",
+      "arn:aws:s3:::*"
+    ]
+
+    condition { # add more conditions as needed
+      test = "ForAnyValue:StringNotEqualsIfExists"
+      variable = "aws:ResourceTag/Environment"
+      values = [ "*" ]
       }
-    },
-    deny_s3_public_access = {
-      name        = "deny-s3-public-access"
-      description = "Prevents public access to S3 buckets"
-      policy_content = jsonencode({
-        Version = "2012-10-17"
-        Statement = [
-          {
-            Sid    = "DenyS3PublicAccessPolicy"
-            Effect = "Deny"
-            Action = [
-              "s3:PutBucketPublicAccessBlock",
-              "s3:DeletePublicAccessBlock"
-            ]
-            Resource = "*"
-            Condition = {
-              StringNotEquals = {
-                "s3:PublicAccessBlockConfiguration" = [
-                  "true"
-                ]
-              }
-            }
-          },
-          {
-            Sid    = "DenyS3PublicPolicy"
-            Effect = "Deny"
-            Action = [
-              "s3:PutBucketPolicy"
-            ]
-            Resource = "*"
-            Condition = {
-              StringLike = {
-                "s3:PolicyStatus" = [
-                  "Public"
-                ]
-              }
-            }
-          }
-        ]
-      })
-      tags = {
-        Purpose     = "Security"
-        Environment = "All"
+     condition {
+      test = "ForAnyValue:StringNotEqualsIfExists"
+      variable = "aws:ResourceTag/Owner"
+      values = [ "*" ]
       }
     }
   }
 
-  target_ou_id = "ou-1234567890" # Replace with your target OU ID
+resource "aws_organizations_policy" "require_resource_tags" {
+  name   = "Require Resource Tags"
+  description = "Deny resources without required tags"
+  type   = "SERVICE_CONTROL_POLICY" 
+  content = data.aws_iam_policy_document.deny_resources_without_required_tags.json
 }
 
+// This SCP would prevent IAM roles and users from being created without a permission boundary
+data "aws_iam_policy_document" "IAM_roles_users_require_permission_boundary" {
+  statement {
+    sid = "RequirePermissionBoundary"
+    effect = "Deny"
+
+    actions = [ 
+      "iam:CreateRole",
+      "iam:CreateUser"
+    ]
+
+    resources = [ 
+      "arn:aws:iam:::*"
+    ]
+
+    condition { 
+      test = "StringNotEqualsIfExists"
+      variable = "iam:PermissionBoundary"
+      values = [ "*" ] # insert the ARN of the permission boundary policy
+      }
+    }
+  }
+  
+resource "aws_organizations_policy" "require_permission_boundary" {
+  name   = "Require Permission Boundary"
+  description = "Deny creation of IAM roles and users without permission boundary"
+  type   = "SERVICE_CONTROL_POLICY" 
+  content = data.aws_iam_policy_document.IAM_roles_users_require_permission_boundary.json
+}
+
+// This SCP would require MFA on root and deny root user actions
+data "aws_iam_policy_document" "deny_root_use_and_require_mfa" {
+  statement {
+    sid = "EnforceMFAonRoot"
+    effect = "Deny"
+
+    actions = "*"
+    resources = "*"
+
+    condition { 
+      test = "BooleanEquals"
+      variable = "aws:MultiFactorAuthPresent"
+      values = "false" 
+      }
+    }
+
+  statement {
+    sid = "DenyRootUserActions"
+    effect = "Deny"
+
+    actions = "*"
+    resources = "*"
+
+    condition {
+      test = "StringLike"
+      variable = "aws:PrincipalArn"
+      values = "arn:aws:iam::*:root" 
+      }
+    }
+  }
+  
+resource "aws_organizations_policy" "require_mfa_on_root_and_deny_root_user_actions" {
+  name   = "Require MFA on Root and Deny Root User Actions"
+  description = "Deny root user actions and require MFA on root"
+  type   = "SERVICE_CONTROL_POLICY" 
+  content = data.aws_iam_policy_document.IAM_roles_users_require_permission_boundary.json
+}
+
+// This SCP would prevent deletion of KMS keys
+data "aws_iam_policy_document" "deny_deletion_of_kms_keys" {
+  statement {
+    sid = "PreventKMSKeyDeletion"
+    effect = "Deny"
+
+    actions = [ 
+      "kms:ScheduleKeyDeletion",
+      "kms:DeleteAlias",
+      "kms:DeleteImportedKeyMaterial"
+    ]
+
+    resources = [ 
+      "arn:aws:kms:*:*:key/*"
+    ]
+
+    condition { 
+      test = "ArnNotLike"
+      variable = "aws:PrincipalArn"
+      values = [ "*" ] # insert the ARN of the security principal
+      }
+    }
+  }
+  
+resource "aws_organizations_policy" "deny_deletion_of_kms_keys" {
+  name   = "Deny Deletion of KMS Keys"
+  description = "Prevent deletion of KMS keys"
+  type   = "SERVICE_CONTROL_POLICY" 
+  content = data.aws_iam_policy_document.deny_deletion_of_kms_keys.json
+}
+
+// This SCP requries certain AMIs to be used
+data "aws_iam_policy_document" "require_ami" {
+  statement {
+    sid = "RequireAMI"
+    effect = "Deny"
+
+    actions = [ 
+      "ec2:RunInstances",
+      "ec2:CreateLaunchTemplateVersion",
+      "ec2:CreateFleet",
+      "ec2:RunScheduledInstances"
+    ]
+
+    resources = [ 
+      "arn:aws:ec2:::*"
+    ]
+
+    condition { 
+      test = "StringNotEqualsIfExists"
+      variable = "ec2:ImageId"
+      values = [ "*" ] # insert the AMI IDs
+      }
+    }
+  }
+  
+resource "aws_organizations_policy" "require_ami" {
+  name   = "Require AMI"
+  description = "Deny use of non-approved AMIs"
+  type   = "SERVICE_CONTROL_POLICY" 
+  content = data.aws_iam_policy_document.require_ami.json
+}
