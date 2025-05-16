@@ -1,13 +1,3 @@
-// Can this condition be added to the scp_deny_disabling_security_services.tf file for guardduty? 
-// This would prevent the ability to invite GuardDuty members unless the principal is part of your organization.
-condition {
-  test = "StringNotEquals"
-  variable = "aws:PrincipalOrgID"
-  values = [
-    "o-xxxxxxxxxx"
-  ]
-}
-
 // This SCP would prevent resources from being deployed if they dont have appropriate tags
 data "aws_iam_policy_document" "deny_resources_without_required_tags" {
   statement {
@@ -74,43 +64,6 @@ resource "aws_organizations_policy" "require_permission_boundary" {
   content = data.aws_iam_policy_document.IAM_roles_users_require_permission_boundary.json
 }
 
-// This SCP would require MFA on root and deny root user actions
-data "aws_iam_policy_document" "deny_root_use_and_require_mfa" {
-  statement {
-    sid = "EnforceMFAonRoot"
-    effect = "Deny"
-
-    actions = "*"
-    resources = "*"
-
-    condition { 
-      test = "BooleanEquals"
-      variable = "aws:MultiFactorAuthPresent"
-      values = "false" 
-      }
-    }
-
-  statement {
-    sid = "DenyRootUserActions"
-    effect = "Deny"
-
-    actions = "*"
-    resources = "*"
-
-    condition {
-      test = "StringLike"
-      variable = "aws:PrincipalArn"
-      values = "arn:aws:iam::*:root" 
-      }
-    }
-  }
-  
-resource "aws_organizations_policy" "require_mfa_on_root_and_deny_root_user_actions" {
-  name   = "Require MFA on Root and Deny Root User Actions"
-  description = "Deny root user actions and require MFA on root"
-  type   = "SERVICE_CONTROL_POLICY" 
-  content = data.aws_iam_policy_document.IAM_roles_users_require_permission_boundary.json
-}
 
 // This SCP would prevent deletion of KMS keys
 data "aws_iam_policy_document" "deny_deletion_of_kms_keys" {
