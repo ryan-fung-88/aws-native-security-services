@@ -24,7 +24,7 @@ locals {
       rule_identifier = "S3_BUCKET_LEVEL_PUBLIC_ACCESS_PROHIBITED"
     },
     default_security_group_check = {
-      rule_identifier = "VPC_DEFAULT_SECURITY_GROUPS_CHECK"
+      rule_identifier = "VPC_DEFAULT_SECURITY_GROUPS_CLOSED"
     },
     cloudtrail_log_file_validation = {
       rule_identifier = "CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED"
