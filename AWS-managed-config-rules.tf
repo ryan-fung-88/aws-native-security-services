@@ -24,7 +24,7 @@ locals {
       rule_identifier = "S3_BUCKET_LEVEL_PUBLIC_ACCESS_PROHIBITED"
     },
     default_security_group_check = {
-      rule_identifier = "VPC_DEFAULT_SECURITY_GROUPS_CLOSED"
+      rule_identifier = "VPC_DEFAULT_SECURITY_GROUP_CLOSED"
     },
     cloudtrail_log_file_validation = {
       rule_identifier = "CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED"
@@ -33,13 +33,13 @@ locals {
       rule_identifier = "ACM_CERTIFICATE_EXPIRATION_CHECK"
     },
     secrets_rotation_enabled = {
-      rule_identifier = "SECRETS_MANAGER_ROTATION_ENABLED"
+      rule_identifier = "SECRETSMANAGER_ROTATION_ENABLED_CHECK"
     },
     kms_rotation_enabled = {
       rule_identifier = "CMK_BACKING_KEY_ROTATION_ENABLED"
     },
     iam_credential_expiration = {
-      rule_identifier = "IAM_USER_CREDENTIALS_EXPIRATION_CHECK"
+      rule_identifier = "IAM_USER_UNUSED_CREDENTIALS_CHECK"
     },
     ec2_instance_profile_check = {
       rule_identifier = "EC2_INSTANCE_PROFILE_ATTACHED"
@@ -51,7 +51,7 @@ locals {
       rule_identifier = "S3_BUCKET_VERSIONING_ENABLED"
     },
     nacl_restrict_ssh_rdp = {
-      rule_identifier = "NACL_NO_UNRESTRICT_SSH_RDP"
+      rule_identifier = "NACL_NO_UNRESTRICTED_SSH_RDP"
     }
   }
 }
