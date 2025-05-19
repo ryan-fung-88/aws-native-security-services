@@ -1,16 +1,5 @@
-resource "aws_guardduty_organization_admin_account" "gd" {
-  provider         = aws.org
-  admin_account_id = local.delegated_admin #"526590817801"
-  depends_on       = [local.org]
-}
 
-resource "aws_guardduty_detector" "delegated_admin" {
-  #checkov:skip=CKV2_AWS_3:Temporary exception until TGRC reviews the code they created.
-  count    = var.current_account == var.prod_master_payer ? 1 : 0
-  enable   = true
-  provider = aws.secsvcs
-}
-
+# This is enabling the S3, EKS Audit Logs , and Malware Protection PLans for GuardDuty
 resource "aws_guardduty_organization_configuration" "delegated_admin" {
   provider    = aws.secsvcs
   #auto_enable = true
@@ -36,6 +25,7 @@ resource "aws_guardduty_organization_configuration" "delegated_admin" {
   # depends_on = [aws_guardduty_organization_admin_account.gd]
 }
 
+# This is enabling RDS, Lambda, and Runtime Monitoring protection plans for GuardDuty
 resource "aws_guardduty_organization_configuration_feature" "delegated_admin" {
   provider = aws.secsvcs
   for_each = toset(local.gd_protection_plans)
@@ -45,11 +35,7 @@ resource "aws_guardduty_organization_configuration_feature" "delegated_admin" {
   auto_enable = "ALL"
 }
 
-resource "aws_guardduty_detector" "org" {
-  #checkov:skip=CKV2_AWS_3:Temporary exception until TGRC reviews the code they created.
-  enable   = true
-  provider = aws.org
-}
+
 
 locals {
   gd_protection_plans = [ "RDS_LOGIN_EVENTS", "LAMBDA_NETWORK_LOGS" , "RUNTIME_MONITORING"]
