@@ -36,7 +36,18 @@ resource "aws_guardduty_organization_configuration_feature" "delegated_admin" {
 }
 
 
+# This code block is to enable protections plans on a single instance of guradduty 
+resource "aws_guardduty_detector_feature" "example" {
+
+  for_each = locals.gd_single_instance_protection_plans
+  detector_id = aws_guardduty_detector.example.id
+  name        = each.value
+  status      = "ENABLED"
+}
+
+
 
 locals {
   gd_protection_plans = [ "RDS_LOGIN_EVENTS", "LAMBDA_NETWORK_LOGS" , "RUNTIME_MONITORING"]
+  gd_single_instance_protection_plans = [ "RDS_LOGIN_EVENTS", "LAMBDA_NETWORK_LOGS" , "RUNTIME_MONITORING", "S3_DATA_EVENTS", "EBS_MALWARE_PROTECTION", "EKS_AUDIT_LOGS"]
 }
