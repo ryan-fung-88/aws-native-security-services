@@ -1,0 +1,152 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  AssumeRoleExtId:
+    Type: String
+    Description: 'External ID for assuming the role in the spoke account'
+  
+  AssumeRoleArn:
+    Type: String
+    Description: 'ARN of the role to assume in the spoke account'
+  
+  CurrentAccountId:
+    Type: String
+    Description: 'Current AWS account ID'
+  
+  Region:
+    Type: String
+    Default: us-east-1
+    Description: 'AWS region to operate in'
+
+Resources:
+
+  TransformExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: GetVPCsPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeVpcs
+                  - sts:AssumeRole
+                Resource: '*'
+
+  GetVPCFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Runtime: python3.6
+      Role: !GetAtt TransformExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import logging
+          # import json
+    
+          logging.basicConfig(
+              filename='get_vpcs.log',
+              filemode='a',
+              format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+              datefmt='%H:%M:%S',
+              level=logging.INFO)
+
+
+          def get_vpcs(query):
+              assume_role_ext_id = !Ref AssumeRoleExtId
+              assume_role_arn = !Ref AssumeRoleArn
+              sts = boto3.client('sts')
+              sts_assumerole = sts.assume_role(RoleArn=assume_role_arn,
+                                              RoleSessionName="terraform_ext_data",
+                                              ExternalId=assume_role_ext_id)
+              sts_access_key = sts_assumerole['Credentials']['AccessKeyId']
+              sts_secret_key = sts_assumerole['Credentials']['SecretAccessKey']
+              sts_session_token = sts_assumerole['Credentials']['SessionToken']
+
+              logging.info('Now beginning function...')
+
+              this_acct_id = !Ref CurrentAccountId
+              if 'region' in query:
+                  curr_region = !Ref Region
+              else:
+                  curr_region = 'us-east-1'
+              logging.info('Operating in the "{}" region.'.format(curr_region))
+              boto3.setup_default_session(region_name=curr_region,
+                                          aws_access_key_id=sts_access_key,
+                                          aws_secret_access_key=sts_secret_key,
+                                          aws_session_token=sts_session_token)
+              ec2 = boto3.client('ec2', region_name=curr_region)
+              vpc_list = ec2.describe_vpcs()['Vpcs']
+              logging.debug('Received VPC list: {}'.format(vpc_list))
+
+            vpc_id_list = []
+            for vpc in vpc_list:
+                if vpc['OwnerId'] == this_acct_id:
+                    logging.debug(
+                        'VPC is owned by the current spoke account ID: {}'.format(
+                            vpc['VpcId']))
+                    vpc_id_list.append(vpc['VpcId'])
+                else:
+                    logging.info('Skipping shared VPC: {}'.format(vpc['VpcId']))
+
+            output = {
+                "vpc_ids": str.join(',', vpc_id_list),
+                "vpc_count": '{}'.format(len(vpc_id_list))
+            }
+            logging.info('Script completed.')
+            return output
+  
+  TransformFunctionPermissions:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !GetAtt GetVPCFunction.Arn
+      Principal: 'cloudformation.amazonaws.com'
+
+  Transform:
+    Type: AWS::CloudFormation::Macro
+    Properties:
+      Name: 'GetVPCs'
+      Description: Provides various string processing functions
+      FunctionName: !GetAtt GetVPCFunction.Arn
+
+
+## Not sure if this can be in the same CFT stack or need to be seperated
+
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  VPCList:
+    Type: List<String>
+    Description: 'List of VPC IDs to process'
+    Default: []
+
+Resources:
+  R53QueryConfig:
+    Type: AWS::Route53Resolver::ResolverQueryLoggingConfig
+    Properties:
+      DestinationArn: String
+      Name: String
+      Tags: 
+        - Tag
+  R53QueryConfigAssociation:
+    Type: AWS::Route53Resolver::ResolverQueryLoggingConfigAssociation
+    Properties:
+      ResolverQueryLoggingConfigId: !GetAtt R53QueryConfig.Id
+      ResourceId:
+        AWS:
+          'Fn::Transform':
+            - Name: GetVPCs
+              Parameters:
+                VPCList: !Ref VPCList
+
+    
