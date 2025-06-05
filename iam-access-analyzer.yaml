@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template for AWS IAM Access Analyzer external and unused access analyzer'
+
+Resources:
+  ExternalAccessAnalyzer:
+    Type: 'AWS::IAM::AccessAnalyzer'
+    Properties:
+      AnalyzerName: 'TGRC-ExternalAccessAnalyzer'
+      Type: 'ORGANIZATION'
+      Tags:
+        - Key: Name
+          Value: TGRC-ExternalAccessAnalyzer
+
+  UnusedAccessAnalyzer:
+    Type: 'AWS::IAM::AccessAnalyzer'
+    Properties:
+      AnalyzerName: 'TGRC-UnusedAccessAnalyzer'
+      AnalyzerConfiguration:
+        UnusedAccessConfiguration:
+          UnusedAccessAge: 90
+      Type: 'ORGANIZATION_UNUSED_ACCESS'
+      Tags:
+        - Key: Name
+          Value: TGRC-UnusedAccessAnalyzer
