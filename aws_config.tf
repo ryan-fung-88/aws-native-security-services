@@ -29,22 +29,22 @@ module "aws_config" {
   source = "./modules/AWS-Config"
 
   config_recorder_name          = "AWS-Config-Recorder"
-  config_role                   = "arn:aws:iam::123456789012:role/aws_config_role"  
+  config_role                   = "arn:aws:iam::123456789012:role/aws_config_role"
   recording_all_resource_types  = true
   include_global_resource_types = true
   #resource_types_to_record = [ "AWS::IAM::User", "AWS::EC2::SecurityGroup" ]  # Specify the resource types you want to record
-  enable_config_recorder         = true
- 
-  include_config_aggregator = true
+  enable_config_recorder = true
+
+  include_config_aggregator               = true
   config_aggregator_collection_account_id = "123456789012"
-  config_aggregation_collection_region     = "us-east-1"  
-  account_aggregator_name         = "AWS-Config-Aggregator"
-  config_aggregation_account_ids = ["123456789012"] # Replace with the AWS account IDs you want to aggregate from
-  config_aggregation_all_regions = true
+  config_aggregation_collection_region    = "us-east-1"
+  account_aggregator_name                 = "AWS-Config-Aggregator"
+  config_aggregation_account_ids          = ["123456789012"] # Replace with the AWS account IDs you want to aggregate from
+  config_aggregation_all_regions          = true
   #config_aggregation_regions = [ "us-east-1", "us-west-2" ]  # Example regions to aggregate from
 
   delivery_channel_name       = "AWS-Config-Delivery-Channel"
-  s3_config_bucket            = "my-config-bucket"  
+  s3_config_bucket            = "my-config-bucket"
   snapshot_delivery_frequency = "One_Hour"
 
   managed_rules = {
@@ -70,7 +70,7 @@ module "aws_config" {
       identifier  = "ELB_LOGGING_ENABLED"
       description = "Checks if the Application Load Balancer and the Classic Load Balancer have logging enabled"
       parameters = jsonencode({
-       s3BucketNames = "test-bucket"
+        s3BucketNames = "test-bucket"
       })
     },
   }

@@ -52,6 +52,7 @@ resource "aws_config_delivery_channel" "config_delivery_channel" {
 
 }
 
+### Note this resource block may not be need anymore as we are deploying AWS Config Managed Rules at the organization level
 resource "aws_config_config_rule" "managed_rules" {
   for_each = var.managed_rules
   name        = each.key

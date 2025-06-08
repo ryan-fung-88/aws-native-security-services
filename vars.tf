@@ -63,8 +63,8 @@ variable "config_aggregation_collection_region" {
 variable "config_role" {
   description = "The ARN of the IAM role for AWS Config"
   type        = string
-  default     = " " 
-  
+  default     = " "
+
 }
 
 variable "config_aggregation_account_ids" {
@@ -94,7 +94,7 @@ variable "delivery_channel_name" {
 variable "s3_config_bucket" {
   description = "The name of the S3 bucket for AWS Config delivery"
   type        = string
-  default     = " "  
+  default     = " "
 }
 
 variable "snapshot_delivery_frequency" {
