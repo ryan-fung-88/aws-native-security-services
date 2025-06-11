@@ -23,10 +23,9 @@ resource "aws_config_configuration_aggregator" "config_account_aggregator" {
   count = var.include_config_aggregator ? 1 : 0
   
   name = var.account_aggregator_name
-  account_aggregation_source {
-    account_ids = var.config_aggregation_account_ids
+  organization_aggregation_source {
     all_regions = var.config_aggregation_all_regions
-    regions     = var.config_aggregation_all_regions ? [] : var.config_aggregation_regions
+    role_arn = var.aggregator_role_arn  # Replace with the IAM role ARN that has permissions to read AWS Config data across accounts
   }
 
   depends_on = [ aws_config_configuration_recorder.config_recorder ]
@@ -52,15 +51,15 @@ resource "aws_config_delivery_channel" "config_delivery_channel" {
 
 }
 
-resource "aws_config_config_rule" "managed_rules" {
-  for_each = var.managed_rules
-  name        = each.key
-  description = lookup(each.value, "description", "AWS Managed Config Rule - ${each.key}")
-  source {
-    owner             = "AWS"
-    source_identifier = each.value.identifier
-  }
-  input_parameters = lookup(each.value, "parameters", null)
+# resource "aws_config_config_rule" "managed_rules" {
+#   for_each = var.managed_rules
+#   name        = each.key
+#   description = lookup(each.value, "description", "AWS Managed Config Rule - ${each.key}")
+#   source {
+#     owner             = "AWS"
+#     source_identifier = each.value.identifier
+#   }
+#   input_parameters = lookup(each.value, "parameters", null)
 
-  depends_on = [aws_config_configuration_recorder.config_recorder]
-}
+#   depends_on = [aws_config_configuration_recorder.config_recorder]
+# }

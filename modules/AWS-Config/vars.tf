@@ -65,23 +65,19 @@ variable "config_role" {
   
 }
 
-variable "config_aggregation_account_ids" {
-  description = "List of AWS account IDs to aggregate AWS Config data from"
-  type        = list(string)
-  default     = []
-}
-
 variable "config_aggregation_all_regions" {
   description = "Whether to aggregate AWS Config data from all regions"
   type        = bool
   default     = true
 }
 
-variable "config_aggregation_regions" {
-  description = "List of AWS regions to aggregate AWS Config data from if not aggregating all"
-  type        = list(string)
-  default     = []
+variable "aggregator_role_arn" {
+  description = "The ARN of the IAM role that has permissions to read AWS Config data across accounts"
+  type        = string
+  default     = " " 
+  
 }
+
 
 variable "delivery_channel_name" {
   description = "The name of the AWS Config delivery channel"
@@ -101,14 +97,14 @@ variable "snapshot_delivery_frequency" {
   default     = "One_Hour"
 }
 
-variable "managed_rules" {
-  description = "Map of AWS Config managed rules to be created"
-  type        = map(object({
-    identifier   = string
-    description  = optional(string)
-    parameters   = optional(string)
-  }))
-  default     = {}
+# variable "managed_rules" {
+#   description = "Map of AWS Config managed rules to be created"
+#   type        = map(object({
+#     identifier   = string
+#     description  = optional(string)
+#     parameters   = optional(string)
+#   }))
+#   default     = {}
   
-}
+# }
 
